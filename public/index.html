@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>야구 게임!</title>
+    <link rel="stylesheet" href="styles.css"> <!-- 외부 CSS 파일 연결 -->
+
+</head>
+
+
+
+<body>
+    <img id="baseball_start" class="gifs" src="./assets/baseball_start.gif">
+    <img id="out" class="gifs" src="./assets/out.gif">
+    <img id="win" class="gifs" src="./assets/win.gif">
+    <img id="throw" class="gifs" src="./assets/throw.gif">
+
+
+    <!-- 4자리 숫자 입력하는 기능 -->
+    <h2>공을 던지세요!</h2>
+    <div class="input-container">
+        <input class="digit-input" type="text" maxlength="1" onkeyup="checkValidateInput(0, event)" />
+        <input class="digit-input" type="text" maxlength="1" onkeyup="checkValidateInput(1, event)" />
+        <input class="digit-input" type="text" maxlength="1" onkeyup="checkValidateInput(2, event)" />
+        <input class="digit-input" type="text" maxlength="1" onkeyup="checkValidateInput(3, event)" />
+    </div>
+    <div id="result"></div>
+
+    <script>
+
+
+        //정답 숫자 생성
+        function generateRandomDigit() {
+            var numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+            var answerNumberArray = [];
+
+            for (var i = 0; i < 4; i++) {
+                var randomIndex = Math.floor(Math.random() * numbers.length); // 1~10까지 정수 생성
+                answerNumberArray.push(numbers.splice(randomIndex, 1)[0]); // 1~ 10까지 번째
+            }
+
+            return {
+                answerNumberArray: answerNumberArray,
+                answerNumber: answerNumberArray.join('')
+            };
+        }
+
+        var answer = generateRandomDigit();
+        console.log(answer.answerNumber);
+        var answerDigit1 = answer.answerNumber.charAt(0);
+        var answerDigit2 = answer.answerNumber.charAt(1);
+        var answerDigit3 = answer.answerNumber.charAt(2);
+        var answerDigit4 = answer.answerNumber.charAt(3);
+        var tryCount = 0;
+        var strike = 0;
+        var ball = 0;
+        var gameHistory = []; // 각 시도 결과를 저장하는 배열
+
+
+
+        function checkValidateInput(index, event) {
+            const input = event.target;
+            const inputs = document.querySelectorAll('.digit-input');
+            const nextInput = input.nextElementSibling;
+            const prevInput = input.previousElementSibling;
+            const keyCode = event.which || event.keyCode;
+            const inputValue = input.value;
+            const isValidNumber = /^\d$/.test(inputValue);
+
+
+            if (inputValue) {
+
+                if (!isValidNumber) {
+                    input.value = '';
+                    return;
+                } else if (isValidNumber) {
+                    if (nextInput && index < 3) {
+                        nextInput.focus();
+                    }
+                }
+            }
+            //아래 백스페이스로 뒤로가기, 빈칸 있을때 엔터키로 검사실행 작동안함
+            if (keyCode === 8 || event.key === 'Backspace') {
+                if (prevInput && index > 0) {
+                    prevInput.focus();
+                }
+
+            } else if (event.keyCode === 13 || event.key === 'Enter') {
+                validateInput(); //검사 실행
+            }
+
+            function showGifImage(elementId, imageUrl) {
+                var imageElement = document.getElementById(elementId);
+                if (imageUrl) {
+                    imageElement.src = imageUrl;
+                }
+                imageElement.currentTime = 0;
+                imageElement.style.display = 'block';
+                document.getElementById('result').style.display = 'none'
+
+
+                setTimeout(function () {
+                    imageElement.style.display = 'none';
+                    document.getElementById('result').style.display = 'block';
+                }, 3500); // 3.5초 후에 이미지 숨김
+
+            }
+
+            // 호출할 때 이미지 경로 전달
+
+
+
+
+
+
+
+            //입력된 4자리 숫자에 대해 중복여부 검사
+            function validateInput() {
+
+
+
+
+                function retry() {
+                    inputs.forEach(function (input) {
+                        input.value = '';
+                    });
+                    inputs[0].focus();
+                }
+
+                function concatenateDigits() {
+                    var concatenatedNumber = ''; // 각 자릿수의 값을 결합할 문자열 초기화
+
+                    // 각 입력 요소에 대한 값을 수집하여 문자열로 결합
+                    inputs.forEach(function (input) {
+                        concatenatedNumber += input.value; // 각 입력 요소의 값을 문자열에 추가
+                    });
+                    return concatenatedNumber;
+
+                }
+
+                var numberInput = concatenateDigits();
+                var strike = 0;
+                var ball = 0;
+
+                // 숫자가 4자리인지 확인
+                if (numberInput.length !== 4) {
+                    document.getElementById('result').innerHTML = '4자리 숫자를 입력하세요.';
+                    return;
+
+                }
+
+                for (var i = 0; i < numberInput.length; i++) {
+                    for (var j = i + 1; j < numberInput.length; j++) {
+                        if (numberInput[i] === numberInput[j]) {
+                            document.getElementById('result').innerHTML = '각 자릿수가 중복되지 않게 입력하세요.';
+                            return;
+
+                        }
+                    }
+                }
+
+                var inputDigit1 = numberInput.charAt(0); //넣은 숫자 1번째
+                var inputDigit2 = numberInput.charAt(1);
+                var inputDigit3 = numberInput.charAt(2);
+                var inputDigit4 = numberInput.charAt(3);
+
+                if (inputDigit1 === answerDigit1) {
+                    strike += 1;
+                } else if (inputDigit1 === answerDigit2 || inputDigit1 === answerDigit3 || inputDigit1 === answerDigit4) {
+                    ball += 1;
+                }
+                if (inputDigit2 === answerDigit2) {
+                    strike += 1;
+                } else if (inputDigit2 === answerDigit1 || inputDigit2 === answerDigit3 || inputDigit2 === answerDigit4) {
+                    ball += 1;
+                }
+                if (inputDigit3 === answerDigit3) {
+                    strike += 1;
+                } else if (inputDigit3 === answerDigit1 || inputDigit3 === answerDigit2 || inputDigit3 === answerDigit4) {
+                    ball += 1;
+                }
+                if (inputDigit4 === answerDigit4) {
+                    strike += 1;
+                } else if (inputDigit4 === answerDigit1 || inputDigit4 === answerDigit2 || inputDigit4 === answerDigit3) {
+                    ball += 1;
+                }
+
+                //유효한 경우
+
+                if (numberInput === answer.answerNumber) {
+                    tryCount += 1;
+                    var resultMessage = tryCount + '번째 시도: 정답  입력한 숫자: ' + numberInput + '<br><br>' + tryCount + '번째 시도만에 정답을 맞췄습니다!';
+                    document.getElementById('result').innerHTML = resultMessage;
+                    gameHistory.push(resultMessage);
+                    showGifImage('throw', 'assets/throw.gif');
+                    setTimeout(function () {
+                        showGifImage('win', 'assets/win.gif');
+                    }, 3500);
+
+
+                } else if (strike === 0 && ball === 0) {
+                    tryCount += 1;
+                    var resultMessage = tryCount + '번째 시도: 아웃  입력한 숫자: ' + numberInput;
+                    document.getElementById('result').innerHTML = resultMessage;
+                    gameHistory.push(resultMessage);
+                    showGifImage('throw', 'assets/throw.gif');
+                    setTimeout(function () {
+                        showGifImage('out', 'assets/out.gif');
+                    }, 3500);
+
+
+                } else {
+                    tryCount += 1;
+                    var resultMessage = tryCount + '번째 시도: ' + strike + ' 스트라이크 ' + ball + ' 볼  입력한 숫자: ' + numberInput;
+                    document.getElementById('result').innerHTML = resultMessage;
+                    gameHistory.push(resultMessage);
+                    showGifImage('throw', 'assets/throw.gif');
+
+                }
+                document.getElementById('result').innerHTML = gameHistory.join('<br>');
+                retry();
+
+
+
+            }
+
+
+
+        }
+
+
+
+
+    </script>
+
+
+</body>
+
+</html>
